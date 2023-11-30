@@ -1,3 +1,9 @@
+areaparams
+bin
+levels
+mals
+worlds
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
