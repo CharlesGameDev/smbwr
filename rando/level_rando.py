@@ -4,15 +4,18 @@ import random
 import zstandard
 from info import ENEMY_LIST
 
-def randomize_level_content(print, randomize_enemies, randomize_wonder_effects):
+def randomize_level_content(print, randomize_enemies, randomize_wonder_effects, randomize_ko, randomize_wiggler, randomize_timer):
     strs = []
 
     if not randomize_enemies and not randomize_wonder_effects: return
-    
+
     if randomize_enemies: strs.append("Enemies")
+    if randomize_ko: strs.append("KO Arena Enemies")
+    if randomize_wiggler: strs.append("Wiggler Enemies")
     if randomize_wonder_effects: strs.append("Wonder Effects")
-    
-    print(f"Randomizing level content with {'and'.join(strs)}...")
+    if randomize_timer: strs.append("Wonder Effect Timers")
+
+    print(f"Randomizing level content with {', '.join(strs)}...")
 
     print("Decompiling BYML...")
     arr = os.listdir("levels")
@@ -36,14 +39,15 @@ def randomize_level_content(print, randomize_enemies, randomize_wonder_effects):
         if "Actors" in level:
             for actor in level["Actors"]:
                 if randomize_enemies:
-                    if actor["Gyaml"].startswith("Enemy"):
+                    if actor["Gyaml"].startswith("Enemy") and "Hanachan" not in actor["Gyaml"]:
                         actor["Gyaml"] = random.choice(ENEMY_LIST).replace("\n", "")
                 if randomize_wonder_effects:
                     if actor["Gyaml"] == "ObjectWonderTag":
-                        time = random.randrange(min_wonder_time, max_wonder_time)
-                        effect = random.choice(wonder_types)
+                        if randomize_timer:
+                            time = random.randrange(min_wonder_time, max_wonder_time)
+                            actor["Dynamic"]["WonderTime"] = byml.Float(time)
 
-                        actor["Dynamic"]["WonderTime"] = byml.Float(time)
+                        effect = random.choice(wonder_types)
                         actor["Dynamic"]["PlayerWonderType"] = byml.Int(effect)
 
     if not os.path.exists("randomized/romfs/BancMapUnit/"):

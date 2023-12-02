@@ -14,19 +14,16 @@ import byml
 import pymsyt
 import wrapt
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Super Mario Bros. Wonder Randomizer")
 
-        self.randomize_world_map = False
-        self.randomize_level_content = False
-        self.randomize_enemies = False
-        self.randomize_wonder_effects = False
-        self.randomize_area_params = False
-        self.randomize_text = False
+        self.console = QTextEdit(self)
+        self.console.setStyleSheet("border: 1px solid lightgray; background-color: transparent")
+        self.console.setReadOnly(True)
 
         self.left_side_frame = QFrame(self)
         self.left_side_frame.setFrameStyle(QFrame.Box | QFrame.Raised)
@@ -40,12 +37,35 @@ class MainWindow(QWidget):
         options_label.setAlignment(Qt.AlignCenter)
         self.left_side.addWidget(options_label)
 
-        self.make_checkbox("Randomize World Map?", on_check=self.wm_check)
-        self.make_checkbox("Randomize Level Content?", on_check=self.lc_check)
-        self.c_randomize_enemies = self.make_checkbox("Randomize Enemies?", False, self.re_check)
-        self.c_randomize_wonder_effects = self.make_checkbox("Randomize Wonder Effects?", False)
-        self.make_checkbox("Randomize Level Styles?", on_check=self.ls_check)
-        self.make_checkbox("Randomize Text?", on_check=self.text_check)
+        self.wm_checkbox = self.make_checkbox("Randomize World Map?", on_check=self.wm_check)
+        self.lc_frame = QFrame(self)
+        self.lc_frame.setFrameStyle(QFrame.Box | QFrame.Raised)
+        self.lc_layout = QVBoxLayout(self.lc_frame)
+
+        self.lc_checkbox = self.make_checkbox("Randomize Level Content?", on_check=self.lc_check)
+
+        self.en_frame = QFrame(self)
+        self.en_frame.setFrameStyle(QFrame.Box | QFrame.Raised)
+        self.en_frame.setVisible(False)
+        self.en_layout = QVBoxLayout(self.en_frame)
+        self.en_checkbox = self.make_checkbox("Randomize Enemies?", False, self.re_check, parent=self.lc_layout)
+        # self.koarena_checkbox = self.make_checkbox("Randomize KO Arenas?", False, None, parent=self.en_layout)
+        # self.wiggler_checkbox = self.make_checkbox("Randomize Wiggler Races?", True, None, parent=self.en_layout)
+        self.lc_layout.addWidget(self.en_frame)
+
+        self.we_frame = QFrame(self)
+        self.we_frame.setFrameStyle(QFrame.Box | QFrame.Raised)
+        self.we_frame.setVisible(False)
+        self.we_layout = QVBoxLayout(self.we_frame)
+        self.we_checkbox = self.make_checkbox("Randomize Wonder Effects?", False, self.we_check, parent=self.lc_layout)
+        self.wetimer_checkbox = self.make_checkbox("Randomize Timer?", True, None, parent=self.we_layout)
+        self.lc_layout.addWidget(self.we_frame)
+
+        self.lc_frame.setVisible(False)
+        self.left_side.addWidget(self.lc_frame)
+
+        self.ls_checkbox = self.make_checkbox("Randomize Level Styles?", on_check=self.ls_check)
+        self.text_checkbox = self.make_checkbox("Randomize Text?", on_check=self.text_check)
 
         self.left_side.addSpacerItem(QSpacerItem(0, 30))
 
@@ -68,10 +88,6 @@ class MainWindow(QWidget):
 
         self.left_side.addStretch()
 
-        self.console = QTextEdit(self)
-        self.console.setStyleSheet("border: 1px solid lightgray; background-color: transparent")
-        self.console.setReadOnly(True)
-
         self.resize(800, 600)
         self.show()
 
@@ -93,37 +109,34 @@ class MainWindow(QWidget):
         self.left_side_frame.setGeometry(QRect(0, 0, int(self.geometry().width() / 2), self.geometry().height()))
         self.console.setGeometry(QRect(int(self.geometry().width() / 2), 0, int(self.geometry().width() / 2), self.geometry().height()))
 
-    def make_checkbox(self, text = "", visible = True, on_check = None):
+    def make_checkbox(self, text = "", checked = False, on_check = None, parent=None):
         checkbox = QCheckBox(text)
         if on_check != None:
             checkbox.toggled.connect(on_check)
-        checkbox.setVisible(visible)
-        self.left_side.addWidget(checkbox)
+        if parent == None:
+            parent = self.left_side
+        checkbox.setChecked(checked)
+        parent.addWidget(checkbox)
 
         return checkbox
     
     def wm_check(self, checked: bool):
-        self.randomize_world_map = checked
+        pass
     
     def re_check(self, checked: bool):
-        self.randomize_enemies = checked
+        self.en_frame.setVisible(checked)
 
     def we_check(self, checked: bool):
-        self.randomize_wonder_effects = checked
+        self.we_frame.setVisible(checked)
 
     def ls_check(self, checked: bool):
-        self.randomize_area_params = checked
+        pass
 
     def text_check(self, checked: bool):
-        self.randomize_text = checked
-    
-    def we_check(self, checked: bool):
-        self.randomize_wonder_effects = checked
+        pass
 
     def lc_check(self, checked: bool):
-        self.randomize_level_content = checked
-        self.c_randomize_enemies.setVisible(checked)
-        self.c_randomize_wonder_effects.setVisible(checked)
+        self.lc_frame.setVisible(checked)
 
     def content_print(self, text: str):
         print(text)
@@ -156,14 +169,14 @@ class MainWindow(QWidget):
 
         self.content_print(f"Starting randomization with seed {normal_seed}")
 
-        if self.randomize_world_map:
+        if self.wm_checkbox.isChecked():
             randomize_world_map(self.content_print)
-        if self.randomize_area_params:
+        if self.ls_checkbox.isChecked():
             randomize_area_params(self.content_print)
-        if self.randomize_text:
+        if self.text_checkbox.isChecked():
             randomize_text(self.content_print)
-        if self.randomize_level_content:
-            randomize_level_content(self.content_print, self.randomize_enemies, self.randomize_wonder_effects)
+        if self.lc_checkbox.isChecked():
+            randomize_level_content(self.content_print, self.en_checkbox.isChecked(), self.we_checkbox.isChecked(), True, True, self.wetimer_checkbox.isChecked())
 
         self.content_print("Randomization finished!")
         self.randomize_button.setEnabled(True)

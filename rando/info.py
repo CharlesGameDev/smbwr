@@ -152,11 +152,6 @@ EnemyPukupuku
 EnemyPukupukuReaction
 EnemyPukupukuReactionKoopaJr
 EnemyPukupukuReactionPlus
-EnemyRaceHanachanBody
-EnemyRaceHanachanBody1
-EnemyRaceHanachanBody2
-EnemyRaceHanachanBody3
-EnemyRaceHanachanHead
 EnemyRhythmGabon
 EnemyRumble
 EnemyRunRunPackun
